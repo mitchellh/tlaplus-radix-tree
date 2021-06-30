@@ -103,6 +103,13 @@ Result:
 CheckResult:
   assert result = Expected(root, prefix);
 end algorithm; *)
+
+-----------------------------------------------------------------------------
+
+\* !!! NOTE !!! The rest of the file is auto-generated based on the PlusCal
+\* above. For those who are reading this to learn TLA+/PlusCal, you can stop
+\* reading here.
+
 \* BEGIN TRANSLATION (chksum(pcal) = "e56848a2" /\ chksum(tla) = "5b2d1a3e")
 VARIABLES stack, input, prefix, root, node, search, result, pc
 
@@ -185,5 +192,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Wed Jun 30 11:46:15 PDT 2021 by mitchellh
+\* Last modified Wed Jun 30 12:04:00 PDT 2021 by mitchellh
 \* Created Wed Jun 30 10:05:52 PDT 2021 by mitchellh

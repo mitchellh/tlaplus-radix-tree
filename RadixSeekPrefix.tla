@@ -59,6 +59,8 @@ variables
 \* This entire algorith is almost 1:1 translated where possible from the
 \* actual implementation in iter.go. That's the point: we're trying to verify
 \* our algorithm is correct for all inputs.
+\*
+\* Source: https://github.com/hashicorp/go-immutable-radix/blob/f63f49c0b598a5ead21c5015fb4d08fe7e3c21ea/iter.go#L16
 begin
   \* I could've just set these variables in the initializer above but
   \* to better closely match the algorithm, I reset them here.
@@ -101,7 +103,7 @@ Result:
 CheckResult:
   assert result = Expected(root, prefix);
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "e56848a2" /\ chksum(tla) = "ebeb5a20")
+\* BEGIN TRANSLATION (chksum(pcal) = "e56848a2" /\ chksum(tla) = "5b2d1a3e")
 VARIABLES stack, input, prefix, root, node, search, result, pc
 
 vars == << stack, input, prefix, root, node, search, result, pc >>
@@ -162,7 +164,7 @@ Result == /\ pc = "Result"
 
 CheckResult == /\ pc = "CheckResult"
                /\ Assert(result = Expected(root, prefix), 
-                         "Failure of assertion at line 102, column 3.")
+                         "Failure of assertion at line 104, column 3.")
                /\ pc' = "Done"
                /\ UNCHANGED << stack, input, prefix, root, node, search, 
                                result >>
@@ -183,5 +185,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Wed Jun 30 11:35:08 PDT 2021 by mitchellh
+\* Last modified Wed Jun 30 11:46:15 PDT 2021 by mitchellh
 \* Created Wed Jun 30 10:05:52 PDT 2021 by mitchellh

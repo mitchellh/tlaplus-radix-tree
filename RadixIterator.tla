@@ -47,7 +47,7 @@ LOCAL foldLeft(op(_, _), base, seq) ==
 RECURSIVE iterate(_, _)
 iterate(T, prefix) == 
   LET 
-    current == IF T.Value THEN <<prefix \o T.Prefix>> ELSE <<>>
+    current == IF Len(T.Value) > 0 THEN <<T.Value>> ELSE <<>>
       \* current value of node (if exists)
       
     orderedEdges == SortSeq(setToSeq(DOMAIN T.Edges), CmpOp)
@@ -68,5 +68,5 @@ Iterate(Stack) == iterate(Stack[1], <<>>) \* TODO doesn't do the whole stack!
 
 =============================================================================
 \* Modification History
-\* Last modified Wed Jun 30 10:02:47 PDT 2021 by mitchellh
+\* Last modified Thu Jul 01 10:19:44 PDT 2021 by mitchellh
 \* Created Tue Jun 29 19:49:11 PDT 2021 by mitchellh

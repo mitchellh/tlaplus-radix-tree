@@ -141,8 +141,6 @@ end procedure;
 \* This entire algorith is almost 1:1 translated where possible from the
 \* actual implementation in iter.go. That's the point: we're trying to verify
 \* our algorithm is correct for all inputs.
-\*
-\* Source: https://github.com/hashicorp/go-immutable-radix/blob/f63f49c0b598a5ead21c5015fb4d08fe7e3c21ea/iter.go#L16
 begin
 Begin:
   search := prefix;
@@ -185,7 +183,7 @@ end algorithm; *)
 \* above. For those who are reading this to learn TLA+/PlusCal, you can stop
 \* reading here.
 
-\* BEGIN TRANSLATION (chksum(pcal) = "c97935ab" /\ chksum(tla) = "b2f124d")
+\* BEGIN TRANSLATION (chksum(pcal) = "c97935ab" /\ chksum(tla) = "8366b16")
 \* Parameter n of procedure mergeChild at line 63 col 22 changed to n_
 VARIABLES input, prefix, root, newChild, search, result, pc, stack
 
@@ -364,7 +362,7 @@ AssertExpected == /\ pc = "AssertExpected"
                          IF actual # expected
                             THEN /\ PrintT(<<"value check", "actual", actual, "expected", expected>>)
                                  /\ Assert(FALSE, 
-                                           "Failure of assertion at line 164, column 7.")
+                                           "Failure of assertion at line 162, column 7.")
                             ELSE /\ TRUE
                   /\ pc' = "Done"
                   /\ UNCHANGED << input, prefix, root, newChild, search, 
@@ -385,5 +383,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Fri Jul 02 11:33:15 PDT 2021 by mitchellh
+\* Last modified Fri Jul 02 11:44:17 PDT 2021 by mitchellh
 \* Created Wed Jun 30 10:05:52 PDT 2021 by mitchellh

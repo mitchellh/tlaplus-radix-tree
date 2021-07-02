@@ -89,7 +89,7 @@ Expected(input, key) ==
   
 (*--algorithm seek_lower_bound
 variables 
-  stack = <<>>,
+  iterStack = <<>>,
   input \in InputSets,
   key \in Inputs,
   root = RadixTree(input),
@@ -97,6 +97,33 @@ variables
   search = {},
   result = {},
   prefixCmp = "UNSET";
+  
+\* findMin as implemented in Go
+procedure findMin() begin
+FindMin:
+  while Len(node.Value) = 0 do
+    with 
+      labels = SortedEdgeLabels(node),
+      edges  = [ n \in 1..Len(labels) |-> node.Edges[labels[n]] ]
+    do
+      if Len(edges) > 1 then
+        iterStack := iterStack \o SubSeq(edges, 2, Len(edges));
+      end if;
+      
+      if Len(edges) > 0 then
+        \* recurse again
+        node := edges[1];
+      else
+        \* shouldn't be possible
+        return;
+      end if;
+    end with; 
+  end while;
+      
+  iterStack := iterStack \o <<node>>;
+  return;
+end procedure;
+
 
 \* This entire algorith is almost 1:1 translated where possible from the
 \* actual implementation in iter.go. That's the point: we're trying to verify
@@ -107,7 +134,7 @@ begin
   \* I could've just set these variables in the initializer above but
   \* to better closely match the algorithm, I reset them here.
 Begin:
-  stack := <<>>;
+  iterStack := <<>>;
   node := root;
   search := key;
 
@@ -122,44 +149,25 @@ Seek:
     if prefixCmp < 0 then
       goto Result;
     elsif prefixCmp > 0 then
-    RecurseMin:
-      while Len(node.Value) = 0 do
-        with 
-          labels = SortedEdgeLabels(node),
-          edges  = [ n \in 1..Len(labels) |-> node.Edges[labels[n]] ]
-        do
-          if Len(edges) > 0 then
-            stack := stack \o SubSeq(edges, 2, Len(edges));
-            node := edges[1];
-          else
-            \* shouldn't be possible
-            goto Result;
-          end if;
-        end with; 
-      end while;
-      
-      stack := stack \o <<node>>;
+      call findMin();
       goto Result;
     end if;
     
   Search:
-    if Len(node.Value) > 0 then
-      if GoBytesCompare(node.Value, key) < 0 then
-        goto Result;
-      end if;
-      
-    SearchMatch:
-      stack := stack \o <<node>>;
+    if Len(node.Value) > 0 /\ node.Value = key then
+      iterStack := iterStack \o <<node>>;
       goto Result;
     end if;
     
   Consume:
-    if Len(node.Prefix) > Len(search) then
-      search := <<>>;
-    else
-      search := SubSeq(search, Len(node.Prefix)+1, Len(search))
-    end if;
+    search := SubSeq(search, Len(node.Prefix)+1, Len(search));
     
+    if Len(search) = 0 then
+      call findMin();
+      goto Result;
+    end if;
+  
+  NextEdge:
     with 
       idx = GetLowerBoundEdgeIndex(node, search[1]), 
       labels = SortedEdgeLabels(node),
@@ -169,7 +177,7 @@ Seek:
         goto Result;
       else
         if idx+1 <= Len(edges) then
-          stack := stack \o SubSeq(edges, idx+1, Len(edges));
+          iterStack := iterStack \o SubSeq(edges, idx+1, Len(edges));
         end if;
 
         node := edges[idx];
@@ -179,7 +187,7 @@ Seek:
   end while;
   
 Result:
-  result := Iterate(stack);
+  result := Iterate(iterStack);
   
 CheckResult:
   assert result = Expected(input, key);
@@ -191,13 +199,15 @@ end algorithm; *)
 \* above. For those who are reading this to learn TLA+/PlusCal, you can stop
 \* reading here.
 
-\* BEGIN TRANSLATION (chksum(pcal) = "c021d80a" /\ chksum(tla) = "20123e42")
-VARIABLES stack, input, key, root, node, search, result, prefixCmp, pc
+\* BEGIN TRANSLATION (chksum(pcal) = "7f5569db" /\ chksum(tla) = "3aa36c9b")
+VARIABLES iterStack, input, key, root, node, search, result, prefixCmp, pc, 
+          stack
 
-vars == << stack, input, key, root, node, search, result, prefixCmp, pc >>
+vars == << iterStack, input, key, root, node, search, result, prefixCmp, pc, 
+           stack >>
 
 Init == (* Global variables *)
-        /\ stack = <<>>
+        /\ iterStack = <<>>
         /\ input \in InputSets
         /\ key \in Inputs
         /\ root = RadixTree(input)
@@ -205,14 +215,38 @@ Init == (* Global variables *)
         /\ search = {}
         /\ result = {}
         /\ prefixCmp = "UNSET"
+        /\ stack = << >>
         /\ pc = "Begin"
 
+FindMin == /\ pc = "FindMin"
+           /\ IF Len(node.Value) = 0
+                 THEN /\ LET labels == SortedEdgeLabels(node) IN
+                           LET edges == [ n \in 1..Len(labels) |-> node.Edges[labels[n]] ] IN
+                             /\ IF Len(edges) > 1
+                                   THEN /\ iterStack' = iterStack \o SubSeq(edges, 2, Len(edges))
+                                   ELSE /\ TRUE
+                                        /\ UNCHANGED iterStack
+                             /\ IF Len(edges) > 0
+                                   THEN /\ node' = edges[1]
+                                        /\ pc' = "FindMin"
+                                        /\ stack' = stack
+                                   ELSE /\ pc' = Head(stack).pc
+                                        /\ stack' = Tail(stack)
+                                        /\ node' = node
+                 ELSE /\ iterStack' = iterStack \o <<node>>
+                      /\ pc' = Head(stack).pc
+                      /\ stack' = Tail(stack)
+                      /\ node' = node
+           /\ UNCHANGED << input, key, root, search, result, prefixCmp >>
+
+findMin == FindMin
+
 Begin == /\ pc = "Begin"
-         /\ stack' = <<>>
+         /\ iterStack' = <<>>
          /\ node' = root
          /\ search' = key
          /\ pc' = "Seek"
-         /\ UNCHANGED << input, key, root, result, prefixCmp >>
+         /\ UNCHANGED << input, key, root, result, prefixCmp, stack >>
 
 Seek == /\ pc = "Seek"
         /\ IF Len(node.Prefix) < Len(search)
@@ -220,76 +254,70 @@ Seek == /\ pc = "Seek"
               ELSE /\ prefixCmp' = GoBytesCompare(node.Prefix, search)
         /\ IF prefixCmp' < 0
               THEN /\ pc' = "Result"
+                   /\ stack' = stack
               ELSE /\ IF prefixCmp' > 0
-                         THEN /\ pc' = "RecurseMin"
+                         THEN /\ stack' = << [ procedure |->  "findMin",
+                                               pc        |->  "Result" ] >>
+                                           \o stack
+                              /\ pc' = "FindMin"
                          ELSE /\ pc' = "Search"
-        /\ UNCHANGED << stack, input, key, root, node, search, result >>
+                              /\ stack' = stack
+        /\ UNCHANGED << iterStack, input, key, root, node, search, result >>
 
 Search == /\ pc = "Search"
-          /\ IF Len(node.Value) > 0
-                THEN /\ IF GoBytesCompare(node.Value, key) < 0
-                           THEN /\ pc' = "Result"
-                           ELSE /\ pc' = "SearchMatch"
+          /\ IF Len(node.Value) > 0 /\ node.Value = key
+                THEN /\ iterStack' = iterStack \o <<node>>
+                     /\ pc' = "Result"
                 ELSE /\ pc' = "Consume"
-          /\ UNCHANGED << stack, input, key, root, node, search, result, 
-                          prefixCmp >>
-
-SearchMatch == /\ pc = "SearchMatch"
-               /\ stack' = stack \o <<node>>
-               /\ pc' = "Result"
-               /\ UNCHANGED << input, key, root, node, search, result, 
-                               prefixCmp >>
+                     /\ UNCHANGED iterStack
+          /\ UNCHANGED << input, key, root, node, search, result, prefixCmp, 
+                          stack >>
 
 Consume == /\ pc = "Consume"
-           /\ IF Len(node.Prefix) > Len(search)
-                 THEN /\ search' = <<>>
-                 ELSE /\ search' = SubSeq(search, Len(node.Prefix)+1, Len(search))
-           /\ LET idx == GetLowerBoundEdgeIndex(node, search'[1]) IN
-                LET labels == SortedEdgeLabels(node) IN
-                  LET edges == [ n \in 1..Len(labels) |-> node.Edges[labels[n]] ] IN
-                    IF idx = 0
-                       THEN /\ pc' = "Result"
-                            /\ UNCHANGED << stack, node >>
-                       ELSE /\ IF idx+1 <= Len(edges)
-                                  THEN /\ stack' = stack \o SubSeq(edges, idx+1, Len(edges))
-                                  ELSE /\ TRUE
-                                       /\ stack' = stack
-                            /\ node' = edges[idx]
-                            /\ pc' = "Seek"
-           /\ UNCHANGED << input, key, root, result, prefixCmp >>
+           /\ search' = SubSeq(search, Len(node.Prefix)+1, Len(search))
+           /\ IF Len(search') = 0
+                 THEN /\ stack' = << [ procedure |->  "findMin",
+                                       pc        |->  "Result" ] >>
+                                   \o stack
+                      /\ pc' = "FindMin"
+                 ELSE /\ pc' = "NextEdge"
+                      /\ stack' = stack
+           /\ UNCHANGED << iterStack, input, key, root, node, result, 
+                           prefixCmp >>
 
-RecurseMin == /\ pc = "RecurseMin"
-              /\ IF Len(node.Value) = 0
-                    THEN /\ LET labels == SortedEdgeLabels(node) IN
-                              LET edges == [ n \in 1..Len(labels) |-> node.Edges[labels[n]] ] IN
-                                IF Len(edges) > 0
-                                   THEN /\ stack' = stack \o SubSeq(edges, 2, Len(edges))
-                                        /\ node' = edges[1]
-                                        /\ pc' = "RecurseMin"
-                                   ELSE /\ pc' = "Result"
-                                        /\ UNCHANGED << stack, node >>
-                    ELSE /\ stack' = stack \o <<node>>
-                         /\ pc' = "Result"
-                         /\ node' = node
-              /\ UNCHANGED << input, key, root, search, result, prefixCmp >>
+NextEdge == /\ pc = "NextEdge"
+            /\ LET idx == GetLowerBoundEdgeIndex(node, search[1]) IN
+                 LET labels == SortedEdgeLabels(node) IN
+                   LET edges == [ n \in 1..Len(labels) |-> node.Edges[labels[n]] ] IN
+                     IF idx = 0
+                        THEN /\ pc' = "Result"
+                             /\ UNCHANGED << iterStack, node >>
+                        ELSE /\ IF idx+1 <= Len(edges)
+                                   THEN /\ iterStack' = iterStack \o SubSeq(edges, idx+1, Len(edges))
+                                   ELSE /\ TRUE
+                                        /\ UNCHANGED iterStack
+                             /\ node' = edges[idx]
+                             /\ pc' = "Seek"
+            /\ UNCHANGED << input, key, root, search, result, prefixCmp, stack >>
 
 Result == /\ pc = "Result"
-          /\ result' = Iterate(stack)
+          /\ result' = Iterate(iterStack)
           /\ pc' = "CheckResult"
-          /\ UNCHANGED << stack, input, key, root, node, search, prefixCmp >>
+          /\ UNCHANGED << iterStack, input, key, root, node, search, prefixCmp, 
+                          stack >>
 
 CheckResult == /\ pc = "CheckResult"
                /\ Assert(result = Expected(input, key), 
-                         "Failure of assertion at line 185, column 3.")
+                         "Failure of assertion at line 193, column 3.")
                /\ pc' = "Done"
-               /\ UNCHANGED << stack, input, key, root, node, search, result, 
-                               prefixCmp >>
+               /\ UNCHANGED << iterStack, input, key, root, node, search, 
+                               result, prefixCmp, stack >>
 
 (* Allow infinite stuttering to prevent deadlock on termination. *)
 Terminating == pc = "Done" /\ UNCHANGED vars
 
-Next == Begin \/ Seek \/ Search \/ SearchMatch \/ Consume \/ RecurseMin
-           \/ Result \/ CheckResult
+Next == findMin \/ Begin \/ Seek \/ Search \/ Consume \/ NextEdge \/ Result
+           \/ CheckResult
            \/ Terminating
 
 Spec == Init /\ [][Next]_vars
@@ -300,5 +328,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Jul 01 22:21:38 PDT 2021 by mitchellh
+\* Last modified Thu Jul 01 22:45:53 PDT 2021 by mitchellh
 \* Created Thu Jul 01 10:43:00 PDT 2021 by mitchellh

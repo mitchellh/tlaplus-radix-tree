@@ -78,7 +78,7 @@ LOCAL range(T, prefix) ==
   
 \* Returns the constructed radix tree for the set of keys Keys. 
 RECURSIVE radixTree(_,_)
-radixTree(Keys, Base) == 
+LOCAL radixTree(Keys, Base) == 
   IF Keys = {} THEN {} \* base case, no keys empty tree
   ELSE LET
     prefix == longestPrefix(Keys) 
@@ -97,7 +97,7 @@ radixTree(Keys, Base) ==
 
 -----------------------------------------------------------------------------
 
-\* Returns the constructed radix tree for the set of keys Keys. 
+\* Returns the minimal radix tree for the set of keys Keys. 
 RadixTree(Keys) == 
   LET 
     edgeLabels == firstChars(Keys) 
@@ -112,7 +112,18 @@ RadixTree(Keys) ==
 \* Range returns all of the values that are in the radix tree T.
 Range(T) == range(T, <<>>)
 
+\* Nodes returns all the nodes of the tree T.
+RECURSIVE Nodes(_)
+Nodes(T) ==  {T} \cup UNION { Nodes(T.Edges[e]): e \in DOMAIN T.Edges }
+
+\* TRUE iff the radix tree T is minimal. A tree T is minimal if there are 
+\* the minimum number of nodes present to represent the range of the tree.
+Minimal(T) == 
+  ~\E n \in (Nodes(T) \ {T}):
+    /\ Cardinality(DOMAIN n.Edges) = 1
+    /\ n.Value = <<>>
+
 =============================================================================
 \* Modification History
-\* Last modified Wed Jun 30 11:33:25 PDT 2021 by mitchellh
+\* Last modified Fri Jul 02 13:52:35 PDT 2021 by mitchellh
 \* Created Mon Jun 28 08:08:13 PDT 2021 by mitchellh

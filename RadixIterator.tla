@@ -64,9 +64,12 @@ iterate(T, prefix) ==
 \* Iterate implements the core iteration algorithm. Given a sequence of nodes
 \* this will return a sequence (not a set, since this is ordered) of keys that
 \* are visited in the tree.
-Iterate(Stack) == iterate(Stack[1], <<>>) \* TODO doesn't do the whole stack!
+Iterate(Stack) == 
+  foldLeft(LAMBDA x, y: x \o y, 
+           <<>>,
+           [i \in 1..Len(Stack) |-> iterate(Stack[Len(Stack)-i+1], <<>>)])
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Jul 01 10:19:44 PDT 2021 by mitchellh
+\* Last modified Thu Jul 01 19:07:28 PDT 2021 by mitchellh
 \* Created Tue Jun 29 19:49:11 PDT 2021 by mitchellh

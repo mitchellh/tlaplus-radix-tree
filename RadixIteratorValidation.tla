@@ -25,6 +25,10 @@ Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
 \* InputSets is the full set of possible inputs we can send to the radix tree.
 InputSets == { T \in SUBSET Inputs: Cardinality(T) \in ElementCounts }
 
+\* InputTrees is a set of two trees for all inputs used to test iteration
+\* of multiple trees.
+InputTrees == { <<RadixTree(input1), RadixTree(input2)>>: input1, input2 \in InputSets }
+
 -----------------------------------------------------------------------------
 
 \* TRUE iff the sequence s contains no duplicates. Copied from CommunityModules.
@@ -38,6 +42,14 @@ LOCAL setToSeq(S) == CHOOSE f \in [1..Cardinality(S) -> S] : isInjective(f)
 
 INSTANCE RadixIterator
 
+\* Expected result given an input set is the sorted input set.
+Expected(input) == 
+  SortSeq(setToSeq(input), 
+    LAMBDA x, y:
+      \/ Len(x) < Len(y)
+      \/ /\ Len(x) = Len(y)
+         /\ \A i \in DOMAIN x: CmpOp(x[i], y[i]) \/ x[i] = y[i])
+
 \* The iteration of a tree should be just its sorted inputs.
 IterateIsSortedInput == 
   \A input \in InputSets:
@@ -48,20 +60,35 @@ IterateIsSortedInput ==
       \* that performs per-element. We expect CmpOp to be a LESS THAN operation.
       \* The logic below does not work for GREATER THAN operations (\A would have
       \* to be \E).
-      expected == SortSeq(setToSeq(input), 
-        LAMBDA x, y:
-          \/ Len(x) < Len(y)
-          \/ /\ Len(x) = Len(y)
-             /\ \A i \in DOMAIN x: CmpOp(x[i], y[i]))
+      expected == Expected(input)
     IN 
       IF actual # expected
       THEN Print(<<"actual: ", actual, "expected: ", expected, "input: ", input>>, FALSE)
       ELSE TRUE
+    
+\* The iteration of two things in a stack should have the results of the
+\* first element then the results of the second.  
+IterateMultiple ==
+  \A stack \in InputTrees:
+    LET 
+      actual == Iterate(stack)
+      
+      \* CmpOp operates on individual elements so we have to write a LAMBDA here
+      \* that performs per-element. We expect CmpOp to be a LESS THAN operation.
+      \* The logic below does not work for GREATER THAN operations (\A would have
+      \* to be \E).
+      expected == Expected(Range(stack[2])) \o Expected(Range(stack[1]))
+    IN 
+      IF actual # expected
+      THEN Print(<<"actual: ", actual, "expected: ", expected, "stack: ", stack>>, FALSE)
+      ELSE TRUE
 
 \* The expression that should be checked for validity in the model.
-Valid == IterateIsSortedInput
+Valid == 
+  /\ IterateIsSortedInput
+  /\ IterateMultiple
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Jul 01 10:40:26 PDT 2021 by mitchellh
+\* Last modified Thu Jul 01 19:06:11 PDT 2021 by mitchellh
 \* Created Thu Jul 01 09:57:41 PDT 2021 by mitchellh

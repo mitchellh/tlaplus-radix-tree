@@ -56,13 +56,14 @@ GoBytesCompare(X, Y) ==
 \* of the alphabet.
 CmpSeq(X, Y) == GoBytesCompare(X, Y) <= 0
 
-\* CmpGte is checks if X >= Y
+\* CmpGte checks if X >= Y
 CmpGte(X, Y) == X = Y \/ ~CmpOp(X, Y)
         
-\* Sorted edges based on CmpOp
+\* Sorted edge labels based on CmpOp.
 SortedEdgeLabels(Node) == SortSeq(setToSeq(DOMAIN Node.Edges), CmpOp)
  
-\* Returns the index of the first edge 
+\* Returns the index of the first element that is greater than or equal to
+\* to the search label.
 GetLowerBoundEdgeIndex(Node, Label) ==
   IF ~\E e \in DOMAIN Node.Edges: e = Label \/ ~CmpOp(e, Label) THEN 0
     \* if there is no lower bound edge, return 0
@@ -199,7 +200,7 @@ end algorithm; *)
 \* above. For those who are reading this to learn TLA+/PlusCal, you can stop
 \* reading here.
 
-\* BEGIN TRANSLATION (chksum(pcal) = "7f5569db" /\ chksum(tla) = "3aa36c9b")
+\* BEGIN TRANSLATION (chksum(pcal) = "7f5569db" /\ chksum(tla) = "177f60c")
 VARIABLES iterStack, input, key, root, node, search, result, prefixCmp, pc, 
           stack
 
@@ -308,7 +309,7 @@ Result == /\ pc = "Result"
 
 CheckResult == /\ pc = "CheckResult"
                /\ Assert(result = Expected(input, key), 
-                         "Failure of assertion at line 193, column 3.")
+                         "Failure of assertion at line 194, column 3.")
                /\ pc' = "Done"
                /\ UNCHANGED << iterStack, input, key, root, node, search, 
                                result, prefixCmp, stack >>
@@ -328,5 +329,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Jul 01 22:45:53 PDT 2021 by mitchellh
+\* Last modified Fri Jul 02 08:15:31 PDT 2021 by mitchellh
 \* Created Thu Jul 01 10:43:00 PDT 2021 by mitchellh

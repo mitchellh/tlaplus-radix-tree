@@ -2,8 +2,10 @@ This module specifies the iterator structure used in the go-immutable-radix
 project (https://github.com/hashicorp/go-immutable-radix/).
 
 The iterator is meant to seek to some point in a radix tree and read all
-the subsequent values until it is over. It supports seeking by prefix
-and by lower bound. 
+the subsequent values until it is over. Many algorithms make use of this
+"ordered read" property. This module specifies only the "read next" algorithm
+used by go-immutable-radix. From here, modules such as RadixSeekLowerBound,
+RadixSeekPrefix, etc. refine this module further to verify their own algorithms.
 
 --------------------------- MODULE RadixIterator ---------------------------
 LOCAL INSTANCE RadixTrees
@@ -71,5 +73,5 @@ Iterate(Stack) ==
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Jul 01 19:07:28 PDT 2021 by mitchellh
+\* Last modified Fri Jul 02 08:12:17 PDT 2021 by mitchellh
 \* Created Tue Jun 29 19:49:11 PDT 2021 by mitchellh

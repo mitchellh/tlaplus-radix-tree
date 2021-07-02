@@ -55,11 +55,6 @@ IterateIsSortedInput ==
   \A input \in InputSets:
     LET 
       actual == Iterate(<<RadixTree(input)>>)
-      
-      \* CmpOp operates on individual elements so we have to write a LAMBDA here
-      \* that performs per-element. We expect CmpOp to be a LESS THAN operation.
-      \* The logic below does not work for GREATER THAN operations (\A would have
-      \* to be \E).
       expected == Expected(input)
     IN 
       IF actual # expected
@@ -67,16 +62,11 @@ IterateIsSortedInput ==
       ELSE TRUE
     
 \* The iteration of two things in a stack should have the results of the
-\* first element then the results of the second.  
+\* second element followed by the first (FIFO).
 IterateMultiple ==
   \A stack \in InputTrees:
     LET 
       actual == Iterate(stack)
-      
-      \* CmpOp operates on individual elements so we have to write a LAMBDA here
-      \* that performs per-element. We expect CmpOp to be a LESS THAN operation.
-      \* The logic below does not work for GREATER THAN operations (\A would have
-      \* to be \E).
       expected == Expected(Range(stack[2])) \o Expected(Range(stack[1]))
     IN 
       IF actual # expected
@@ -90,5 +80,5 @@ Valid ==
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Jul 01 19:06:11 PDT 2021 by mitchellh
+\* Last modified Fri Jul 02 08:13:53 PDT 2021 by mitchellh
 \* Created Thu Jul 01 09:57:41 PDT 2021 by mitchellh

@@ -41,22 +41,19 @@ LOCAL firstChars(set) == { seq[1]: seq \in set }
 \* be different lengths, but must have comparable types.
 \* i.e. longestPrefix({1,2},{1,2,3},{1,2,5}) == {1,2}
 LOCAL longestPrefix(set) ==
-  \* Every item must at least have a common first character otherwise
-  \* the longest prefix is surely empty
-  IF \A x \in set, y \in set: 
-    /\ Len(x) >= 1
-    /\ Len(y) >= 1
-    /\ x[1] = y[1]
-  THEN 
   LET
     seq == shortestSeq(set)
-    end == CHOOSE end \in 1..Len(seq):
-      /\ \A i \in 1..end:
-        \A x, y \in set: x[i] = y[i]
-      /\ \/ Len(seq) <= end \* we're at the end 
-         \/ \E x, y \in set: x[end+1] /= y[end+1] \* or there is no longer prefix
-  IN SubSeq(seq, 1, end)
-  ELSE <<>>
+      \* shortest sequence is the longest possible prefix
+    lengths == {0} \cup {
+      i \in 1..Len(seq):
+        \A s1, s2 \in set: SubSeq(s1, 1, i) = SubSeq(s2, 1, i) } 
+      \* all the lengths we match all others in the set
+    maxLength == 
+      CHOOSE x \in lengths:
+        \A y \in lengths:
+          x >= y
+      \* choose the largest length that matched
+  IN SubSeq(seq, 1, maxLength)
   
 -----------------------------------------------------------------------------
 
@@ -119,11 +116,11 @@ Nodes(T) ==  {T} \cup UNION { Nodes(T.Edges[e]): e \in DOMAIN T.Edges }
 \* TRUE iff the radix tree T is minimal. A tree T is minimal if there are 
 \* the minimum number of nodes present to represent the range of the tree.
 Minimal(T) == 
-  ~\E n \in (Nodes(T) \ {T}):
+  ~\E n \in (Nodes(T) \ {T}): \* have to remove root T cause its always empty
     /\ Cardinality(DOMAIN n.Edges) = 1
     /\ n.Value = <<>>
 
 =============================================================================
 \* Modification History
-\* Last modified Fri Jul 02 13:52:35 PDT 2021 by mitchellh
+\* Last modified Fri Jul 02 16:00:40 PDT 2021 by mitchellh
 \* Created Mon Jun 28 08:08:13 PDT 2021 by mitchellh

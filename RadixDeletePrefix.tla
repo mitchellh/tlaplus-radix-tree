@@ -42,7 +42,7 @@ TrimPrefix(seq, prefix) == [ i \in 1..(Len(seq)-Len(prefix)) |-> seq[i+Len(prefi
 \* DeletePrefix should be equivalent to the tree without inputs that have that prefix.
 \* This purposely doesn't model the "delete" algorithm at all: only the end result
 \* of what the tree should contain.
-Expected(input, prefix) == Range(RadixTree({ value \in input: ~HasPrefix(value, prefix) }))
+ExpectedTree(input, prefix) == RadixTree({ value \in input: ~HasPrefix(value, prefix) })
 
 (*--algorithm delete_prefix
 variables 
@@ -154,7 +154,29 @@ SetNewRoot:
   end if;
   
 AssertExpected:
-  assert Range(root) = Expected(input, prefix);
+  \* check our expected values 
+  with 
+    actual = Range(root),
+    expected = Range(ExpectedTree(input, prefix))
+  do
+    if actual # expected then
+      print <<"value check", "actual", actual, "expected", expected>>;
+      assert FALSE;
+    end if;
+  end with;
+  
+  \* check our expected tree structure for an optimal structure
+  (*
+  with 
+    actual = root,
+    expected = ExpectedTree(input, prefix)
+  do
+    if actual # expected then
+      print <<"tree check", "actual", actual, "expected", expected>>;
+      assert FALSE;
+    end if;
+  end with;
+  *)
 end algorithm; *)
 
 -----------------------------------------------------------------------------
@@ -163,7 +185,7 @@ end algorithm; *)
 \* above. For those who are reading this to learn TLA+/PlusCal, you can stop
 \* reading here.
 
-\* BEGIN TRANSLATION (chksum(pcal) = "9c23a03f" /\ chksum(tla) = "cb0cd4a5")
+\* BEGIN TRANSLATION (chksum(pcal) = "c97935ab" /\ chksum(tla) = "b2f124d")
 \* Parameter n of procedure mergeChild at line 63 col 22 changed to n_
 VARIABLES input, prefix, root, newChild, search, result, pc, stack
 
@@ -337,8 +359,13 @@ SetNewRoot == /\ pc = "SetNewRoot"
                               n_, n, nRoot, searchLabel >>
 
 AssertExpected == /\ pc = "AssertExpected"
-                  /\ Assert(Range(root) = Expected(input, prefix), 
-                            "Failure of assertion at line 157, column 3.")
+                  /\ LET actual == Range(root) IN
+                       LET expected == Range(ExpectedTree(input, prefix)) IN
+                         IF actual # expected
+                            THEN /\ PrintT(<<"value check", "actual", actual, "expected", expected>>)
+                                 /\ Assert(FALSE, 
+                                           "Failure of assertion at line 164, column 7.")
+                            ELSE /\ TRUE
                   /\ pc' = "Done"
                   /\ UNCHANGED << input, prefix, root, newChild, search, 
                                   result, stack, n_, n, nRoot, searchLabel >>
@@ -358,5 +385,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Fri Jul 02 11:27:05 PDT 2021 by mitchellh
+\* Last modified Fri Jul 02 11:33:15 PDT 2021 by mitchellh
 \* Created Wed Jun 30 10:05:52 PDT 2021 by mitchellh

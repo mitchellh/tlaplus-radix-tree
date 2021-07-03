@@ -183,7 +183,7 @@ end algorithm; *)
 \* above. For those who are reading this to learn TLA+/PlusCal, you can stop
 \* reading here.
 
-\* BEGIN TRANSLATION (chksum(pcal) = "c97935ab" /\ chksum(tla) = "8366b16")
+\* BEGIN TRANSLATION - the hash of the PCal code: PCal-4cfdd22a8561a6e90f5abd27401fce60
 \* Parameter n of procedure mergeChild at line 63 col 22 changed to n_
 VARIABLES input, prefix, root, newChild, search, result, pc, stack
 
@@ -378,7 +378,7 @@ Spec == Init /\ [][Next]_vars
 
 Termination == <>(pc = "Done")
 
-\* END TRANSLATION 
+\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-3f5a03aa27274374d34aca49ae1849de
 
 
 =============================================================================

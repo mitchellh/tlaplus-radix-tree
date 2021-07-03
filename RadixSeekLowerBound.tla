@@ -200,7 +200,7 @@ end algorithm; *)
 \* above. For those who are reading this to learn TLA+/PlusCal, you can stop
 \* reading here.
 
-\* BEGIN TRANSLATION (chksum(pcal) = "7f5569db" /\ chksum(tla) = "177f60c")
+\* BEGIN TRANSLATION - the hash of the PCal code: PCal-cb91b4d39230aef775d25233214cbd22
 VARIABLES iterStack, input, key, root, node, search, result, prefixCmp, pc, 
           stack
 
@@ -325,7 +325,7 @@ Spec == Init /\ [][Next]_vars
 
 Termination == <>(pc = "Done")
 
-\* END TRANSLATION 
+\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-3849a00086ed28d49f404334fb3cdff9
 
 =============================================================================
 \* Modification History

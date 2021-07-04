@@ -14,6 +14,14 @@ pcal: ## Translate all the pluscal in the TLA files.
 		rm -f "$${f%.tla}.old"; \
 	done
 
+.PHONY: pdf
+pdf: ## Render PDFs for all the TLA files.
+	@for f in $(shell ls ${MKFILE_DIR}/*.tla); do \
+		tla2tex -shade $${f}; \
+		pdflatex "$${f%.tla}.tex"; \
+	done
+	@rm *.{aux,dvi,log,ps,tex}
+
 .PHONY: tlc
 tlc: # Run TLC against a model specified by MODEL_NAME env var
 	@cd ${MKFILE_DIR} && \

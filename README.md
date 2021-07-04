@@ -15,6 +15,8 @@ have `pcal` and `tlc2` setup as scripts or aliases to execute the respective
 commands in `tlatools.jar`. If you have no idea what I'm talking about, stick
 with TLA+ Toolbox for now.
 
+If you're a Nix user, this repository has a `shell.nix` that sets everything up.
+
 ### Executing a Model
 
 To execute a model:

@@ -6,7 +6,7 @@ CONSTANT Alphabet
 
 \* Length of input strings generated
 CONSTANT MinLength, MaxLength
-ASSUME 
+ASSUME
   /\ {MinLength, MaxLength} \subseteq Nat
   /\ MinLength <= MaxLength
   /\ MinLength > 0
@@ -15,7 +15,7 @@ ASSUME
 \* is a set of numbers so you can test with inputs of multiple sizes.
 CONSTANT ElementCounts
 ASSUME ElementCounts \subseteq Nat
-  
+
 \* Inputs is the set of input strings valid for the tree.
 Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
 
@@ -36,14 +36,14 @@ LeafsAreValues(T) ==
      /\ \A e \in DOMAIN T.Edges: LeafsAreValues(T.Edges[e])
   \/ /\ Cardinality(DOMAIN T.Edges) = 0 \* if it has no edges, it must be a value
      /\ Len(T.Value) > 0
-     
+
 \* The range of a radix tree should be the set of its inputs.
 RangeIsInput(input, tree) == input = Range(tree)
-     
+
 -----------------------------------------------------------------------------
 
 \* The expression that should be checked for validity in the model.
-Valid == 
+Valid ==
   \A pair \in Trees:
     LET input == pair[1] tree == pair[2] IN
       \/ /\ RangeIsInput(input, tree)

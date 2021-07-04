@@ -10,6 +10,11 @@ pcal: ## Translate all the pluscal in the TLA files.
 		rm -f "$${f%.tla}.old"; \
 	done
 
+.PHONY: tlc
+tlc: # Run TLC against a model specified by MODEL_NAME env var
+	@cd ${MKFILE_DIR} && \
+		tlc2 ./models/${MODEL_NAME}.tla
+
 # This is just a silly hack I was using before I setup all the CLI stuff.
 # Keeping it for now cause some stuff is still in there. LOL.
 .PHONY: mitchellh/copy

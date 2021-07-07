@@ -32,7 +32,7 @@ InputTrees == { <<RadixTree(input1), RadixTree(input2)>>: input1, input2 \in Inp
 -----------------------------------------------------------------------------
 
 \* TRUE iff the sequence s contains no duplicates. Copied from CommunityModules.
-LOCAL isInjective(s) == \A i, j \in DOMAIN s: (s[i] = s[j]) => (i = j)
+isInjective(s) == \A i, j \in DOMAIN s: (s[i] = s[j]) => (i = j)
 
 \* Converts a set to a sequence that contains all the elements of S exactly once.
 \* Copied from CommunityModules.

@@ -1,5 +1,9 @@
 ---- MODULE MC ----
 EXTENDS RadixSeekLowerBound, TLC
 
-CmpOpImpl(X, Y) == X < Y
+Order ==
+    CHOOSE f \in [Alphabet -> 1..Cardinality(Alphabet)] : isInjective(f)
+
+CmpOpImpl(X, Y) == 
+    Order[X] < Order[Y]
 =============================================================================

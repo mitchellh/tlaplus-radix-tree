@@ -1,5 +1,5 @@
 ----- MODULE Inputs -----
-EXTENDS Naturals, FiniteSets
+EXTENDS Naturals, FiniteSets, FiniteSetsExt, TLC
 
 \* Set of characters to use for the alphabet of generated strings.
 CONSTANT Alphabet
@@ -20,6 +20,10 @@ ASSUME ElementCounts \subseteq Nat
 Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
 
 \* InputSets is the full set of possible inputs we can send to the radix tree.
-InputSets == { T \in SUBSET Inputs: Cardinality(T) \in ElementCounts }
+InputSets == UNION {kSubset(k, Inputs) : k \in ElementCounts}
+
+ASSUME PrintT(<<"|Alphabet|", Cardinality(Alphabet),
+                "|Inputs|", Cardinality(Inputs),
+                "|InputSets|", Cardinality(InputSets)>>)
 
 =========================

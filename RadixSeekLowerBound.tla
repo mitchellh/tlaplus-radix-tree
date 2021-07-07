@@ -2,35 +2,15 @@ This module verifies the SeekLowerBound algorithm in the go-immutable-radix
 Go library (https://github.com/hashicorp/go-immutable-radix).
 
 ------------------------ MODULE RadixSeekLowerBound ------------------------
-EXTENDS FiniteSets, Integers, Sequences, SequencesExt, TLC
-
-\* Set of characters to use for the alphabet of generated strings.
-CONSTANT Alphabet
+EXTENDS FiniteSets, Integers, Sequences, SequencesExt, TLC, Inputs
 
 \* CmpOp is the comparison operator for ordered iteration. This should be TRUE
 \* if the first value is less than the second value. This is called on a single
 \* element of a sequence.
 CONSTANT CmpOp(_,_)
 
-\* Length of input strings generated
-CONSTANT MinLength, MaxLength
-ASSUME 
-  /\ {MinLength, MaxLength} \subseteq Nat
-  /\ MinLength <= MaxLength
-
-\* Number of unique elements to construct the radix tree with. This
-\* is a set of numbers so you can test with inputs of multiple sizes.
-CONSTANT ElementCounts
-ASSUME ElementCounts \subseteq Nat
-
 INSTANCE RadixTrees
 INSTANCE RadixIterator
-  
-\* Inputs is the set of input strings valid for the tree.
-Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
-
-\* InputSets is the full set of possible inputs we can send to the radix tree.
-InputSets == { T \in SUBSET Inputs: Cardinality(T) \in ElementCounts }
 
 -----------------------------------------------------------------------------
 
@@ -302,7 +282,7 @@ Result == /\ pc = "Result"
 
 CheckResult == /\ pc = "CheckResult"
                /\ Assert(result = Expected(input, key), 
-                         "Failure of assertion at line 187, column 3.")
+                         "Failure of assertion at line 167, column 3.")
                /\ pc' = "Done"
                /\ UNCHANGED << iterStack, input, key, root, node, search, 
                                result, prefixCmp, stack >>

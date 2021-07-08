@@ -21,6 +21,14 @@ CONSTANT CmpOp(_,_)
 
 -----------------------------------------------------------------------------
 
+\* Alternative to FoldLeft
+Flatten(seq) ==
+    LET F[ i \in 0..Len(seq)] == \* 0 to handle seq=<<>>
+        IF i = 0
+        THEN <<>>
+        ELSE F[i-1] \o seq[i]
+    IN F[Len(seq)]
+
 \* Internal logic for Iterate.
 RECURSIVE iterate(_, _)
 iterate(T, prefix) == 
@@ -35,7 +43,7 @@ iterate(T, prefix) ==
       iterate(T.Edges[orderedEdges[i]], prefix \o T.Prefix)]
       \* children values, this is a tuple of tuples
 
-    flatChildren == FoldLeft(LAMBDA x, y: x \o y, <<>>, children)
+    flatChildren == Flatten(children) \* FoldLeft(LAMBDA x, y: x \o y, <<>>, children)
       \* children as a single tuple of values
   IN current \o flatChildren
 

@@ -1,5 +1,5 @@
 ----- MODULE Inputs -----
-EXTENDS Naturals, FiniteSets, FiniteSetsExt, TLC
+EXTENDS Naturals, FiniteSets, FiniteSetsExt, TLC, Combinatorics, Randomization
 
 \* Set of characters to use for the alphabet of generated strings.
 CONSTANT Alphabet
@@ -20,7 +20,12 @@ ASSUME ElementCounts \subseteq Nat
 Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
 
 \* InputSets is the full set of possible inputs we can send to the radix tree.
-InputSets == UNION {kSubset(k, Inputs) : k \in ElementCounts}
+InputSets == UNION {
+                    IF choose(k, Cardinality(Inputs)) > 1000 
+                    THEN RandomSetOfSubsets(1000, k, Inputs)
+                    ELSE kSubset(k, Inputs) : 
+                    k \in ElementCounts
+                }
 
 ASSUME PrintT(<<"|Alphabet|", Cardinality(Alphabet),
                 "|Inputs|", Cardinality(Inputs),

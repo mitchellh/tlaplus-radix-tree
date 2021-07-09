@@ -7,31 +7,8 @@ prefix. All subsequent values should have that prefix, but no other ordering
 guarantees are made.
 
 -------------------------- MODULE RadixSeekPrefix --------------------------
-EXTENDS FiniteSets, Integers, Sequences, TLC
+EXTENDS FiniteSets, Integers, Sequences, TLC, Inputs
 INSTANCE RadixTrees
-
-\* Set of characters to use for the alphabet of generated strings.
-CONSTANT Alphabet
-
-\* Length of input strings generated
-CONSTANT MinLength, MaxLength
-ASSUME 
-  /\ {MinLength, MaxLength} \subseteq Nat
-  /\ MinLength <= MaxLength
-  /\ MinLength > 0
-
-\* Number of unique elements to construct the radix tree with. This
-\* is a set of numbers so you can test with inputs of multiple sizes.
-CONSTANT ElementCounts
-ASSUME ElementCounts \subseteq Nat
-
-\* Inputs is the set of input strings valid for the tree.
-Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
-
-\* InputSets is the full set of possible inputs we can send to the radix tree.
-InputSets == { T \in SUBSET Inputs: Cardinality(T) \in ElementCounts }
-
------------------------------------------------------------------------------
 
 \* TRUE iff seq is prefixed with prefix.
 HasPrefix(seq, prefix) ==
@@ -171,7 +148,7 @@ Result == /\ pc = "Result"
 
 CheckResult == /\ pc = "CheckResult"
                /\ Assert(result = Expected(root, prefix), 
-                         "Failure of assertion at line 104, column 3.")
+                         "Failure of assertion at line 81, column 3.")
                /\ pc' = "Done"
                /\ UNCHANGED << stack, input, prefix, root, node, search, 
                                result >>

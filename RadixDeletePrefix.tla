@@ -3,31 +3,8 @@ DeletePrefix in the go-immutable-radix project.
 (https://github.com/hashicorp/go-immutable-radix)
 
 -------------------------- MODULE RadixDeletePrefix --------------------------
-EXTENDS FiniteSets, Integers, Sequences, TLC
+EXTENDS FiniteSets, Integers, Sequences, TLC, Inputs
 INSTANCE RadixTrees
-
-\* Set of characters to use for the alphabet of generated strings.
-CONSTANT Alphabet
-
-\* Length of input strings generated
-CONSTANT MinLength, MaxLength
-ASSUME 
-  /\ {MinLength, MaxLength} \subseteq Nat
-  /\ MinLength <= MaxLength
-  /\ MinLength > 0
-
-\* Number of unique elements to construct the radix tree with. This
-\* is a set of numbers so you can test with inputs of multiple sizes.
-CONSTANT ElementCounts
-ASSUME ElementCounts \subseteq Nat
-
-\* Inputs is the set of input strings valid for the tree.
-Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
-
-\* InputSets is the full set of possible inputs we can send to the radix tree.
-InputSets == { T \in SUBSET Inputs: Cardinality(T) \in ElementCounts }
-
------------------------------------------------------------------------------
 
 \* TRUE iff seq is prefixed with prefix.
 HasPrefix(seq, prefix) ==
@@ -184,7 +161,7 @@ end algorithm; *)
 \* reading here.
 
 \* BEGIN TRANSLATION - the hash of the PCal code: PCal-4cfdd22a8561a6e90f5abd27401fce60
-\* Parameter n of procedure mergeChild at line 63 col 22 changed to n_
+\* Parameter n of procedure mergeChild at line 40 col 22 changed to n_
 VARIABLES input, prefix, root, newChild, search, result, pc, stack
 
 (* define statement *)
@@ -362,7 +339,7 @@ AssertExpected == /\ pc = "AssertExpected"
                          IF actual # expected
                             THEN /\ PrintT(<<"value check", "actual", actual, "expected", expected>>)
                                  /\ Assert(FALSE, 
-                                           "Failure of assertion at line 162, column 7.")
+                                           "Failure of assertion at line 139, column 7.")
                             ELSE /\ TRUE
                   /\ pc' = "Done"
                   /\ UNCHANGED << input, prefix, root, newChild, search, 

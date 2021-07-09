@@ -2,44 +2,17 @@ This module verifies the SeekLowerBound algorithm in the go-immutable-radix
 Go library (https://github.com/hashicorp/go-immutable-radix).
 
 ------------------------ MODULE RadixSeekLowerBound ------------------------
-EXTENDS FiniteSets, Integers, Sequences, TLC
-
-\* Set of characters to use for the alphabet of generated strings.
-CONSTANT Alphabet
+EXTENDS FiniteSets, Integers, Sequences, SequencesExt, TLC, Inputs
 
 \* CmpOp is the comparison operator for ordered iteration. This should be TRUE
 \* if the first value is less than the second value. This is called on a single
 \* element of a sequence.
 CONSTANT CmpOp(_,_)
 
-\* Length of input strings generated
-CONSTANT MinLength, MaxLength
-ASSUME 
-  /\ {MinLength, MaxLength} \subseteq Nat
-  /\ MinLength <= MaxLength
-
-\* Number of unique elements to construct the radix tree with. This
-\* is a set of numbers so you can test with inputs of multiple sizes.
-CONSTANT ElementCounts
-ASSUME ElementCounts \subseteq Nat
-
 INSTANCE RadixTrees
 INSTANCE RadixIterator
-  
-\* Inputs is the set of input strings valid for the tree.
-Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
-
-\* InputSets is the full set of possible inputs we can send to the radix tree.
-InputSets == { T \in SUBSET Inputs: Cardinality(T) \in ElementCounts }
 
 -----------------------------------------------------------------------------
-
-\* TRUE iff the sequence s contains no duplicates. Copied from CommunityModules.
-isInjective(s) == \A i, j \in DOMAIN s: (s[i] = s[j]) => (i = j)
-
-\* Converts a set to a sequence that contains all the elements of S exactly once.
-\* Copied from CommunityModules.
-setToSeq(S) == CHOOSE f \in [1..Cardinality(S) -> S] : isInjective(f)
 
 \* bytes.Compare in Go
 RECURSIVE GoBytesCompare(_,_)     
@@ -60,7 +33,7 @@ CmpSeq(X, Y) == GoBytesCompare(X, Y) <= 0
 CmpGte(X, Y) == X = Y \/ ~CmpOp(X, Y)
         
 \* Sorted edge labels based on CmpOp.
-SortedEdgeLabels(Node) == SortSeq(setToSeq(DOMAIN Node.Edges), CmpOp)
+SortedEdgeLabels(Node) == SortSeq(SetToSeq(DOMAIN Node.Edges), CmpOp)
  
 \* Returns the index of the first element that is greater than or equal to
 \* to the search label.
@@ -86,7 +59,7 @@ GetLowerBoundEdgeIndex(Node, Label) ==
 \*   3. Select the subset of the input sequence where it satisfies our comparison.
 \*      The sequence now only has elements greater than or equal to our key
 Expected(input, key) == 
-  SelectSeq(SortSeq(setToSeq(input), CmpSeq), LAMBDA elem: CmpSeq(key, elem))
+  SelectSeq(SortSeq(SetToSeq(input), CmpSeq), LAMBDA elem: CmpSeq(key, elem))
   
 (*--algorithm seek_lower_bound
 variables 
@@ -309,7 +282,7 @@ Result == /\ pc = "Result"
 
 CheckResult == /\ pc = "CheckResult"
                /\ Assert(result = Expected(input, key), 
-                         "Failure of assertion at line 194, column 3.")
+                         "Failure of assertion at line 167, column 3.")
                /\ pc' = "Done"
                /\ UNCHANGED << iterStack, input, key, root, node, search, 
                                result, prefixCmp, stack >>

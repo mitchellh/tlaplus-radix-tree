@@ -1,29 +1,9 @@
 ---------------------- MODULE RadixIteratorValidation ----------------------
-EXTENDS FiniteSets, Integers, RadixTrees, Sequences, TLC
-
-\* Set of characters to use for the alphabet of generated strings.
-CONSTANT Alphabet
+EXTENDS FiniteSets, Integers, RadixTrees, Sequences, SequencesExt, TLC, Inputs
 
 \* CmpOp is the comparison operator for ordered iteration. This should be TRUE
 \* if the first value is less than the second value.
 CONSTANT CmpOp(_,_)
-
-\* Length of input strings generated
-CONSTANT MinLength, MaxLength
-ASSUME 
-  /\ {MinLength, MaxLength} \subseteq Nat
-  /\ MinLength <= MaxLength
-
-\* Number of unique elements to construct the radix tree with. This
-\* is a set of numbers so you can test with inputs of multiple sizes.
-CONSTANT ElementCounts
-ASSUME ElementCounts \subseteq Nat
-  
-\* Inputs is the set of input strings valid for the tree.
-Inputs == UNION { [1..n -> Alphabet]: n \in MinLength..MaxLength }
-
-\* InputSets is the full set of possible inputs we can send to the radix tree.
-InputSets == { T \in SUBSET Inputs: Cardinality(T) \in ElementCounts }
 
 \* InputTrees is a set of two trees for all inputs used to test iteration
 \* of multiple trees.
@@ -31,20 +11,11 @@ InputTrees == { <<RadixTree(input1), RadixTree(input2)>>: input1, input2 \in Inp
 
 -----------------------------------------------------------------------------
 
-\* TRUE iff the sequence s contains no duplicates. Copied from CommunityModules.
-LOCAL isInjective(s) == \A i, j \in DOMAIN s: (s[i] = s[j]) => (i = j)
-
-\* Converts a set to a sequence that contains all the elements of S exactly once.
-\* Copied from CommunityModules.
-LOCAL setToSeq(S) == CHOOSE f \in [1..Cardinality(S) -> S] : isInjective(f)
-
------------------------------------------------------------------------------
-
 INSTANCE RadixIterator
 
 \* Expected result given an input set is the sorted input set.
 Expected(input) == 
-  SortSeq(setToSeq(input), 
+  SortSeq(SetToSeq(input), 
     LAMBDA x, y:
       \/ Len(x) < Len(y)
       \/ /\ Len(x) = Len(y)
